@@ -4,7 +4,7 @@
 mat2 \- the metadata anonymisation toolkit 2
 
 .SH SYNOPSIS
-\fBmat2\fR [\-h] [\-v] [\-l] [\-V] [-s | -L] [\fIfiles\fR [\fIfiles ...\fR]]
+\fBmat2\fR [\-h] [\-v] [\-l] [\-V] [\-s] [\-L] [\-i] [\fIfiles\fR [\fIfiles ...\fR]]
 
 .SH DESCRIPTION
 .B mat2
@@ -46,6 +46,9 @@ removing them
 .TP
 \fB\-L\fR, \fB\-\-lightweight\fR
 remove SOME metadata
+.TP
+\fB\-i\fR, \fB\-\-in\-place\fR
+edit files in place
 
 .SH EXAMPLES
 To remove all the metadata from a PDF file:
