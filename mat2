@@ -32,7 +32,7 @@ def __check_file(filename: str, mode: int = os.R_OK) -> bool:
         print("[-] %s is not a regular file." % filename)
         return False
     elif not os.access(filename, mode):
-        print("[-] %s is not readable and writeable." % filename)
+        print("[-] %s is not readable and/or writeable." % filename)
         return False
     return True
 
@@ -52,14 +52,22 @@ def create_arg_parser() -> argparse.ArgumentParser:
                         help='how to handle unknown members of archive-style files (policy should' +
                         ' be one of: %s) [Default: abort]' % ', '.join(p.value for p in UnknownMemberPolicy))
 
-
-    info = parser.add_mutually_exclusive_group()
-    info.add_argument('-s', '--show', action='store_true',
-                      help='list harmful metadata detectable by MAT2 without removing them')
-    info.add_argument('-L', '--lightweight', action='store_true',
-                      help='remove SOME metadata')
+    # The following arguments have constraints: [[-s] | [-L | -i]]
+    # ArgParse's mutually exclusive groups only work on arguments, and cannot
+    # contain subgroups. The constraints are thus checked manually after the
+    # arguments are parsed, in check_args().
+    parser.add_argument('-s', '--show', action='store_true',
+                        help='list harmful metadata detectable by MAT2 without removing them')
+    parser.add_argument('-L', '--lightweight', action='store_true',
+                        help='remove SOME metadata')
+    parser.add_argument('-i', '--in-place', action='store_true',
+                        help='edit files in place')
     return parser
 
+
+def check_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
+    if args.show and (args.lightweight or args.in_place):
+        parser.error("arguments -s and -L|-i are mutually exclusive")
 
 def show_meta(filename: str):
     if not __check_file(filename):
@@ -99,8 +107,12 @@ def __print_meta(filename: str, metadata: dict, depth: int = 1):
             print(padding + "  %s: harmful content" % k)
 
 
-def clean_meta(filename: str, is_lightweight: bool, policy: UnknownMemberPolicy) -> bool:
-    if not __check_file(filename, os.R_OK):
+def clean_meta(filename: str, is_lightweight: bool, in_place: bool, policy: UnknownMemberPolicy) -> bool:
+    mode = os.R_OK
+    if in_place:
+        mode |= os.W_OK
+
+    if not __check_file(filename, mode):
         return False
 
     p, mtype = parser_factory.get_parser(filename)  # type: ignore
@@ -110,12 +122,14 @@ def clean_meta(filename: str, is_lightweight: bool, policy: UnknownMemberPolicy)
     p.unknown_member_policy = policy
     p.lightweight_cleaning = is_lightweight
 
+    if in_place:
+        p.set_edit_in_place()
+
     try:
         return p.remove_all()
     except RuntimeError as e:
         print("[-] %s can't be cleaned: %s" % (filename, e))
     return False
-
 
 
 def show_parsers():
@@ -149,6 +163,7 @@ def __get_files_recursively(files: List[str]) -> Generator[str, None, None]:
 def main() -> int:
     arg_parser = create_arg_parser()
     args = arg_parser.parse_args()
+    check_args(arg_parser, args)
 
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
@@ -177,7 +192,7 @@ def main() -> int:
 
         no_failure = True
         for f in __get_files_recursively(args.files):
-            if clean_meta(f, args.lightweight, policy) is False:
+            if clean_meta(f, args.lightweight, args.in_place, policy) is False:
                 no_failure = False
         return 0 if no_failure is True else -1
 

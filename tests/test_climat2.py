@@ -18,14 +18,14 @@ class TestHelp(unittest.TestCase):
         stdout, _ = proc.communicate()
         self.assertIn(b'usage: mat2 [-h] [-v] [-l] [--check-dependencies] [-V]',
                       stdout)
-        self.assertIn(b'[--unknown-members policy] [-s | -L]', stdout)
+        self.assertIn(b'[--unknown-members policy] [-s] [-L] [-i]', stdout)
 
     def test_no_arg(self):
         proc = subprocess.Popen(mat2_binary, stdout=subprocess.PIPE)
         stdout, _ = proc.communicate()
         self.assertIn(b'usage: mat2 [-h] [-v] [-l] [--check-dependencies] [-V]',
                       stdout)
-        self.assertIn(b'[--unknown-members policy] [-s | -L]', stdout)
+        self.assertIn(b'[--unknown-members policy] [-s] [-L] [-i]', stdout)
 
 
 class TestVersion(unittest.TestCase):
