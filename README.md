@@ -54,7 +54,7 @@ $ python3-coverage report --include -m --include /libmat2/*'
 
 ```bash
 usage: mat2 [-h] [-v] [-l] [--check-dependencies] [-V]
-            [--unknown-members policy] [-s | -L]
+            [--unknown-members policy] [-s] [-L] [-i]
             [files [files ...]]
 
 Metadata anonymisation toolkit 2
@@ -75,10 +75,11 @@ optional arguments:
   -s, --show            list harmful metadata detectable by MAT2 without
                         removing them
   -L, --lightweight     remove SOME metadata
+  -i, --in-place        edit files in place
 ```
 
-Note that MAT2 **will not** clean files in-place, but will produce, for
-example, with a file named "myfile.png" a cleaned version named
+Note that MAT2 **will not** clean files in-place by default, but will produce,
+for example, with a file named "myfile.png" a cleaned version named
 "myfile.cleaned.png".
 
 # Notes about detecting metadata
